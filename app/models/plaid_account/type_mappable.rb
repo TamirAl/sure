@@ -57,6 +57,7 @@ module PlaidAccount::TypeMappable
     investment: {
       accountable: Investment,
       subtype_mapping: {
+        # Existing mappings (keep for backward compatibility)
         "brokerage" => "brokerage",
         "pension" => "pension",
         "retirement" => "retirement",
@@ -66,7 +67,48 @@ module PlaidAccount::TypeMappable
         "hsa" => "hsa",
         "mutual fund" => "mutual_fund",
         "roth" => "roth_ira",
-        "ira" => "ira"
+        "ira" => "ira",
+        
+        # Additional US retirement mappings
+        "403b" => "403b",
+        "457b" => "457b",
+        "sep ira" => "sep_ira",
+        "simple ira" => "simple_ira",
+        "keogh" => "keogh",
+        "thrift savings plan" => "thrift_savings_plan",
+        "profit sharing plan" => "profit_sharing_plan",
+        
+        # Canadian retirement mappings
+        "rrsp" => "rrsp",
+        "rrif" => "rrif", 
+        "tfsa" => "tfsa",
+        "lira" => "lira",
+        "lrif" => "lrif",
+        "lrsp" => "lrsp",
+        "prif" => "prif",
+        
+        # International mappings
+        "isa" => "isa",
+        "sipp" => "sipp",
+        
+        # Specialized accounts
+        "ebt" => "ebt",
+        "gic" => "gic",
+        
+        # Trust & estate mappings
+        "trust" => "trust",
+        "ugma" => "ugma",
+        "utma" => "utma",
+        "qtip" => "qtip",
+        "qdro" => "qdro",
+        
+        # Other investment types
+        "crypto" => "crypto",
+        "cryptocurrency" => "crypto",
+        "stock plan" => "stock_plan",
+        "life insurance" => "life_insurance",
+        "lif" => "lif",
+        "angel" => "angel"
       }
     },
     other: {
