@@ -1,3 +1,4 @@
+
 class Investment < ApplicationRecord
   include Accountable
 
