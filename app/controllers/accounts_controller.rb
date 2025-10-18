@@ -4,6 +4,17 @@ class AccountsController < ApplicationController
 
   def index
     @manual_accounts = family.accounts.manual.alphabetically
+    
+    # Apply country filter for investment accounts if specified
+    if params[:country_filter].present?
+      investment_accounts = @manual_accounts.joins(:accountable).where(accountable_type: "Investment")
+      filtered_investments = investment_accounts.select do |account|
+        account.accountable.country == params[:country_filter]
+      end
+      
+      @manual_accounts = @manual_accounts.where.not(accountable_type: "Investment") + filtered_investments
+    end
+    
     @plaid_items = family.plaid_items.ordered
     @simplefin_items = family.simplefin_items.ordered
 

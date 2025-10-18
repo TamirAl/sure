@@ -1,0 +1,13 @@
+<div class="space-y-2">
+  <%= form.label field, class: "block text-sm font-medium text-primary" %>
+  <%= form.grouped_select field, grouped_options, 
+                          { prompt: options[:prompt], include_blank: options[:include_blank] },
+                          { 
+                            class: "block w-full rounded-md border border-secondary bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500",
+                            data: { 
+                              controller: "investment-subtype-filter",
+                              investment_subtype_filter_country_value: options[:filter_by_country],
+                              action: "change->investment-form#subtypeChanged"
+                            }
+                          } %>
+</div>

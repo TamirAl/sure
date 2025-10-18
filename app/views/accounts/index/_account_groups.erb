@@ -1,23 +1,42 @@
 <%# locals: (accounts:) %>
 
-<% accounts.group_by(&:accountable_type).sort_by { |group, _| group }.each do |group, accounts| %>
+<% accounts.group_by(&:accountable_type).sort_by { |group, _| group }.each do |group, group_accounts| %>
   <div class="bg-container-inset p-1 rounded-xl">
-    <div class="flex items-center px-4 py-2 text-xs font-medium text-secondary">
-      <p><%= Accountable.from_type(group).display_name %></p>
-      <span class="text-subdued mx-2">&middot;</span>
-      <p><%= accounts.count %></p>
+    <% if group == "Investment" %>
+      <!-- Enhanced Investment Account Display with Country Filtering -->
+      <%= render Accounts::CountryFilteredListComponent.new(
+            accounts: group_accounts,
+            current_filter: params[:country_filter]
+          ) %>
+    <% else %>
+      <!-- Standard Account Group Display -->
+      <div class="flex items-center px-4 py-2 text-xs font-medium text-secondary">
+        <p><%= Accountable.from_type(group).display_name %></p>
+        <span class="text-subdued mx-2">&middot;</span>
+        <p><%= group_accounts.count %></p>
 
-      <% unless accounts.any?(&:syncing?) %>
-        <p class="ml-auto"><%= totals_by_currency(collection: accounts, money_method: :balance_money) %></p>
-      <% end %>
-    </div>
-    <div class="bg-container rounded-lg shadow-border-xs">
-      <% accounts.each_with_index do |account, index| %>
-        <%= render account %>
-        <% unless index == accounts.count - 1 %>
-          <%= render "shared/ruler" %>
+        <% unless group_accounts.any?(&:syncing?) %>
+          <p class="ml-auto"><%= totals_by_currency(collection: group_accounts, money_method: :balance_money) %></p>
         <% end %>
-      <% end %>
-    </div>
+      </div>
+      <div class="bg-container rounded-lg shadow-border-xs">
+        <% group_accounts.each_with_index do |account, index| %>
+          <% if account.accountable_type == "Investment" %>
+            <!-- Enhanced Investment Account Card -->
+            <%= render Accounts::InvestmentCardComponent.new(
+                  account: account,
+                  show_country: true,
+                  show_tax_treatment: true
+                ) %>
+          <% else %>
+            <!-- Standard Account Card -->
+            <%= render account %>
+          <% end %>
+          <% unless index == group_accounts.count - 1 %>
+            <%= render "shared/ruler" %>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
   </div>
 <% end %>

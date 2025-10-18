@@ -269,15 +269,102 @@ end
 - **NEVER create new styles** in design system files without permission
 - **Always generate semantic HTML**
 
-Disallowed suggestions / behaviors
-- Do NOT propose running system commands in PRs (rails server, rails credentials, touching tmp files, auto-running migrations).
-- Avoid adding new global styles to design system without permission.
-- Do not produce offensive, dangerous, or non-technical content.
+## Multi-Country Investment Account Enhancement
 
-Style for suggestions
-- Make changes atomic and testable; explain impact briefly.
-- Keep suggestions concise and aligned with existing code.
-- Respect existing tests; add tests when changing critical logic.
+### Investment Model Extensions
+The Investment model has been enhanced with comprehensive multi-country support:
 
-Notes from repository config
-- If .gemini/config.yaml disables automated code_review, still provide clear summaries and fix suggestions in PRs.
+**Country Mapping:**
+- `SUBTYPE_COUNTRIES` constant maps investment subtypes to countries (US, CA, UK, International)
+- Instance method `#country` returns account's country code
+- Instance method `#country_flag` returns appropriate flag emoji (🇺🇸, 🇨🇦, 🇬🇧, 🌍)
+
+**Tax Treatment:**
+- `TAX_TREATMENTS` constant categorizes accounts by tax implications
+- Instance method `#tax_treatment` returns: "tax_deferred", "tax_free", or "taxable"  
+- Instance method `#tax_treatment_badge` returns styled badge hash with text and CSS classes
+
+**Class Methods for UI:**
+- `.grouped_by_country` - groups subtypes by country for forms
+- `.subtypes_for_country(country_code)` - filters subtypes by country
+- `.countries_with_counts(accounts)` - returns country statistics
+
+### Enhanced UI Components
+
+**Investment Card Component:**
+```ruby
+# Usage in views
+<%= render Accounts::InvestmentCardComponent.new(
+  account: account,
+  show_country: true,
+  show_tax_treatment: true
+) %>
+```
+
+**Country-Filtered List Component:**
+```ruby
+# Usage in views  
+<%= render Accounts::CountryFilteredListComponent.new(
+  accounts: @investment_accounts,
+  current_filter: params[:country_filter]
+) %>
+```
+
+### API Endpoints for Investment Data
+
+**Available endpoints:**
+- `GET /api/v1/investments/subtype_data.json` - Complete subtype information with country/tax data
+- `GET /api/v1/investments/countries.json` - User's investment countries with account counts
+- `GET /api/v1/investments/subtypes_by_country.json?country=US` - Filtered subtypes by country
+
+**Authentication:** All endpoints require OAuth or API key with 'read' scope
+
+### Stimulus Controllers for Enhanced UX
+
+**Investment Form Controller:**
+- Handles country-based filtering in investment creation forms
+- Provides real-time account information display
+- Integrates with API endpoints for enhanced data
+
+**Country Filter Controller:**
+- Manages country-based filtering tabs
+- Smooth loading states and transitions
+- URL parameter handling for bookmarkable filters
+
+### Form Components
+
+**Grouped Select Component:**
+```ruby
+# Usage for country-grouped investment types
+<%= render Forms::GroupedSelectComponent.new(
+  form: form,
+  field: :subtype,
+  grouped_options: investment_subtype_options_grouped,
+  prompt: "Select account type"
+) %>
+```
+
+### Investment Helper Methods
+
+Available in `InvestmentsHelper`:
+- `investment_subtype_options_grouped` - Country-grouped options for select dropdowns
+- `investment_country_filter_options(accounts)` - Filter options with counts
+- `country_with_flag(country)` - Formatted country names with flags
+
+## Prohibited Actions & Guidelines
+
+**Disallowed suggestions / behaviors:**
+- Do NOT propose running system commands in PRs (rails server, rails credentials, touching tmp files, auto-running migrations)
+- Avoid adding new global styles to design system without permission
+- Do not produce offensive, dangerous, or non-technical content
+- Never use `lucide_icon` directly - always use `icon` helper
+
+**Style for suggestions:**
+- Make changes atomic and testable; explain impact briefly
+- Keep suggestions concise and aligned with existing code
+- Respect existing tests; add tests when changing critical logic
+- Follow established ViewComponent vs partial decision criteria
+- Use declarative Stimulus patterns, not imperative event listeners
+
+**Notes from repository config:**
+- If .gemini/config.yaml disables automated code_review, still provide clear summaries and fix suggestions in PRs

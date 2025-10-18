@@ -1,7 +1,53 @@
 <%# locals: (account:, url:) %>
 
 <%= render "accounts/form", account: account, url: url do |form| %>
-  <%= form.select :subtype,
-                 Investment::SUBTYPES.map { |k, v| [v[:long], k] },
-                 { label: true, prompt: t("investments.form.subtype_prompt"), include_blank: t("investments.form.none") } %>
+  <!-- Enhanced Country-Aware Subtype Selection -->
+  <div data-controller="investment-form" data-investment-form-current-country-value="<%= params[:country_filter] %>">
+    
+    <!-- Country Filter (Optional) -->
+    <div class="mb-4">
+      <%= label_tag :country_filter, "Filter by Country", class: "block text-sm font-medium text-primary" %>
+      <%= select_tag :country_filter, 
+                     options_for_select(investment_country_filter_options(Current.family.accounts.investment), params[:country_filter]),
+                     { 
+                       class: "block w-full rounded-md border border-secondary bg-white px-3 py-2 text-sm",
+                       data: { 
+                         action: "change->investment-form#filterByCountry",
+                         investment_form_target: "countryFilter"
+                       },
+                       prompt: "All Countries"
+                     } %>
+    </div>
+
+    <!-- Subtype Selection with Enhanced UI -->
+    <div class="relative">
+      <%= render Forms::GroupedSelectComponent.new(
+            form: form,
+            field: :subtype,
+            grouped_options: investment_subtype_options_grouped,
+            prompt: t("investments.form.subtype_prompt"),
+            include_blank: t("investments.form.none"),
+            filter_by_country: params[:country_filter]
+          ) %>
+      
+      <!-- Search Input Overlay -->
+      <div class="absolute top-8 right-0 pr-3 pointer-events-none">
+        <%= icon "search", class: "h-4 w-4 text-gray-400" %>
+      </div>
+    </div>
+
+    <!-- Selected Account Info Panel -->
+    <div data-investment-form-target="infoPanel" class="hidden mt-4 p-4 bg-gray-50 rounded-lg border border-secondary">
+      <div class="flex items-center space-x-3">
+        <span data-investment-form-target="countryFlag" class="text-lg"></span>
+        <div>
+          <p class="font-medium text-primary" data-investment-form-target="subtypeName"></p>
+          <div class="flex items-center space-x-2 mt-1">
+            <span data-investment-form-target="taxBadge" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"></span>
+            <span data-investment-form-target="countryName" class="text-sm text-gray-600"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 <% end %>

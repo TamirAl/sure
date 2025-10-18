@@ -1,0 +1,116 @@
+<% if compact %>
+  <!-- Compact Investment Card for Sidebar -->
+  <% content_wrapper = link_to_account ? :div : :span %>
+  <%= content_tag(
+        link_to_account ? :a : :div,
+        class: "flex items-center gap-2 px-3 py-2 w-full #{link_to_account ? 'hover:bg-surface-hover' : ''}",
+        **(link_to_account ? { href: account_path(account) } : {})
+      ) do %>
+    <%= render "accounts/logo", account: account, size: "sm", color: account_group_color %>
+    
+    <div class="min-w-0 grow">
+      <div class="flex items-center gap-2 mb-0.5">
+        <p class="text-sm text-primary font-medium truncate <%= 'animate-pulse' if account.syncing? %>">
+          <%= account.name %>
+        </p>
+        <% if show_country && account.accountable.country != "US" %>
+          <span class="text-xs"><%= account.accountable.country_flag %></span>
+        <% end %>
+      </div>
+      
+      <div class="flex items-center gap-2 text-sm text-secondary truncate">
+        <%= account.short_subtype_label %>
+        <% if show_tax_treatment && tax_treatment_badge %>
+          <span class="<%= tax_treatment_badge[:class] %> px-1 py-0.5 rounded text-xs">
+            <%= tax_treatment_badge[:text] %>
+          </span>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="ml-auto text-right grow h-10">
+      <p class="text-sm font-medium text-primary whitespace-nowrap"><%= format_money(account.balance_money) %></p>
+      <%= turbo_frame_tag dom_id(account, :sparkline), src: sparkline_account_path(account), loading: "lazy", data: { controller: "turbo-frame-timeout", turbo_frame_timeout_timeout_value: 10000 } do %>
+        <div class="flex items-center w-8 h-4 ml-auto">
+          <div class="w-6 h-px bg-loader"></div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+<% else %>
+  <!-- Full Investment Account Card Component -->
+  <div class="bg-white rounded-lg border border-secondary p-4 hover:shadow-md transition-shadow">
+    <!-- Account Header -->
+    <div class="flex items-start justify-between mb-3">
+      <div class="flex items-center space-x-3">
+        <%= icon "line-chart", class: "h-5 w-5 text-blue-600" %>
+        <div>
+          <h3 class="font-medium text-primary">
+            <%= link_to account.name, account_path_helper, class: "hover:text-blue-600" %>
+          </h3>
+          <p class="text-sm text-gray-600"><%= subtype_display_name %></p>
+        </div>
+      </div>
+      
+      <!-- Country Flag & Indicator -->
+      <% if show_country && country_indicator %>
+        <div class="flex items-center text-sm text-gray-500">
+          <%= country_indicator %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Balance Display -->
+    <div class="mb-3">
+      <p class="text-2xl font-bold text-primary"><%= format_money(account.balance_money) %></p>
+      <p class="text-sm text-gray-500">Current Balance</p>
+    </div>
+
+    <!-- Status Badges -->
+    <div class="flex flex-wrap gap-2 mb-3">
+      <!-- Tax Treatment Badge -->
+      <% if show_tax_treatment && tax_treatment_badge %>
+        <span class="<%= tax_treatment_badge[:class] %> inline-flex items-center px-2 py-1 rounded-full text-xs font-medium">
+          <%= tax_treatment_badge[:text] %>
+        </span>
+      <% end %>
+      
+      <!-- Account Type Badge -->
+      <span class="bg-blue-100 text-blue-800 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium">
+        Investment
+      </span>
+
+      <!-- Active Status Badge -->
+      <% if account.respond_to?(:active?) %>
+        <span class="<%= account.active? ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600' %> inline-flex items-center px-2 py-1 rounded-full text-xs font-medium">
+          <%= account.active? ? 'Active' : 'Inactive' %>
+        </span>
+      <% end %>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-between items-center">
+      <div class="flex space-x-2">
+        <%= link_to account_path_helper, class: "text-sm text-blue-600 hover:text-blue-800 font-medium" do %>
+          View Details
+        <% end %>
+        
+        <span class="text-gray-300">•</span>
+        
+        <%= link_to account_edit_path_helper, class: "text-sm text-gray-600 hover:text-gray-800 font-medium" do %>
+          Edit
+        <% end %>
+      </div>
+
+      <!-- Sync Button (if applicable) -->
+      <% if account.respond_to?(:sync_enabled?) && account.sync_enabled? %>
+        <%= link_to sync_account_path(account), method: :post, 
+                    class: "inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-800",
+                    title: "Sync account data" do %>
+          <%= icon "refresh-cw", class: "h-3 w-3 mr-1" %>
+          Sync
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

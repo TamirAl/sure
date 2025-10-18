@@ -23,29 +23,44 @@
 
     <div class="space-y-1">
       <% account_group.accounts.each do |account| %>
-        <%= link_to account_path(account),
-                  class: class_names(
-                    "block flex items-center gap-2 px-3 py-2 rounded-lg",
-                    page_active?(account_path(account)) ? "bg-container" : "hover:bg-surface-hover"
-                  ),
-                  title: account.name do %>
-          <%= render "accounts/logo", account: account, size: "sm", color: account_group.color %>
-
-          <div class="min-w-0 grow">
-            <div class="flex items-center gap-2 mb-0.5">
-              <%= tag.p account.name, class: class_names("text-sm text-primary font-medium truncate", "animate-pulse" => account.syncing?) %>
-            </div>
-            <%= tag.p account.short_subtype_label, class: "text-sm text-secondary truncate" %>
+        <% if account.accountable_type == "Investment" %>
+          <!-- Enhanced Investment Account in Sidebar -->
+          <div class="block rounded-lg hover:bg-surface-hover" title="<%= account.name %>">
+            <%= render Accounts::InvestmentCardComponent.new(
+                  account: account,
+                  show_country: true,
+                  show_tax_treatment: true,
+                  compact: true,
+                  link_to_account: true,
+                  account_group_color: account_group.color
+                ) %>
           </div>
+        <% else %>
+          <!-- Standard Account Display -->
+          <%= link_to account_path(account),
+                    class: class_names(
+                      "block flex items-center gap-2 px-3 py-2 rounded-lg",
+                      page_active?(account_path(account)) ? "bg-container" : "hover:bg-surface-hover"
+                    ),
+                    title: account.name do %>
+            <%= render "accounts/logo", account: account, size: "sm", color: account_group.color %>
 
-          <div class="ml-auto text-right grow h-10">
-            <%= tag.p format_money(account.balance_money), class: "text-sm font-medium text-primary whitespace-nowrap" %>
-            <%= turbo_frame_tag dom_id(account, :sparkline), src: sparkline_account_path(account), loading: "lazy", data: { controller: "turbo-frame-timeout", turbo_frame_timeout_timeout_value: 10000 } do %>
-              <div class="flex items-center w-8 h-4 ml-auto">
-                <div class="w-6 h-px bg-loader"></div>
+            <div class="min-w-0 grow">
+              <div class="flex items-center gap-2 mb-0.5">
+                <%= tag.p account.name, class: class_names("text-sm text-primary font-medium truncate", "animate-pulse" => account.syncing?) %>
               </div>
-            <% end %>
-          </div>
+              <%= tag.p account.short_subtype_label, class: "text-sm text-secondary truncate" %>
+            </div>
+
+            <div class="ml-auto text-right grow h-10">
+              <%= tag.p format_money(account.balance_money), class: "text-sm font-medium text-primary whitespace-nowrap" %>
+              <%= turbo_frame_tag dom_id(account, :sparkline), src: sparkline_account_path(account), loading: "lazy", data: { controller: "turbo-frame-timeout", turbo_frame_timeout_timeout_value: 10000 } do %>
+                <div class="flex items-center w-8 h-4 ml-auto">
+                  <div class="w-6 h-px bg-loader"></div>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
         <% end %>
       <% end %>
     </div>

@@ -1,0 +1,101 @@
+<!-- Country-Filtered Investment Account List Component -->
+<div data-controller="country-filter">
+  <!-- Country Filter Tabs -->
+  <div class="border-b border-secondary mb-6">
+    <nav class="-mb-px flex space-x-8 overflow-x-auto">
+      <% country_tabs.each do |tab| %>
+        <%= link_to filter_path(tab[:code]),
+                    class: "#{tab[:active] ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex-shrink-0",
+                    data: { 
+                      action: "click->country-filter#filterAccounts",
+                      country_filter_country_param: tab[:code]
+                    } do %>
+          <%= tab[:name] %>
+          <% if tab[:count] > 0 %>
+            <span class="ml-2 bg-gray-100 text-gray-900 rounded-full py-0.5 px-2 text-xs font-medium">
+              <%= tab[:count] %>
+            </span>
+          <% end %>
+        <% end %>
+      <% end %>
+    </nav>
+  </div>
+
+  <!-- Account Grid -->
+  <% if filtered_accounts.any? %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-country-filter-target="accountsGrid">
+      <% filtered_accounts.each do |account| %>
+        <%= render Accounts::InvestmentCardComponent.new(account: account) %>
+      <% end %>
+    </div>
+
+    <!-- Summary Info -->
+    <div class="mt-6 flex justify-between items-center text-sm text-gray-600">
+      <p>
+        Showing <%= filtered_accounts.count %> of <%= accounts.count %> investment accounts
+        <% if current_filter.present? %>
+          for <%= country_with_flag(current_filter) %>
+        <% end %>
+      </p>
+      
+      <!-- Total Balance Summary (if we can calculate it) -->
+      <% if filtered_accounts.all? { |account| account.respond_to?(:balance) } %>
+        <% total_balance = filtered_accounts.sum { |account| account.balance&.amount_cents || 0 } %>
+        <% if total_balance > 0 %>
+          <p class="font-medium">
+            Total: <%= Money.new(total_balance, "USD").format %>
+          </p>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <!-- Empty State -->
+    <div class="text-center py-12">
+      <%= icon "line-chart", class: "mx-auto h-12 w-12 text-gray-400 mb-4" %>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">No investment accounts found</h3>
+      <p class="text-gray-500 mb-4">
+        <%= empty_state_message %>
+      </p>
+      
+      <!-- Action Buttons -->
+      <div class="flex justify-center space-x-4">
+        <%= link_to "Add Investment Account", add_account_path,
+                    class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" %>
+        
+        <% if current_filter.present? %>
+          <%= link_to "View All Accounts", filter_path(""),
+                      class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Loading State (for future AJAX filtering) -->
+  <div class="hidden" data-country-filter-target="loadingState">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% 6.times do %>
+        <div class="bg-white rounded-lg border border-secondary p-4 animate-pulse">
+          <div class="flex items-center space-x-3 mb-3">
+            <div class="h-5 w-5 bg-gray-200 rounded"></div>
+            <div class="space-y-2 flex-1">
+              <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          </div>
+          <div class="space-y-2 mb-3">
+            <div class="h-8 bg-gray-200 rounded w-1/2"></div>
+            <div class="h-3 bg-gray-200 rounded w-1/3"></div>
+          </div>
+          <div class="flex space-x-2 mb-3">
+            <div class="h-6 bg-gray-200 rounded w-16"></div>
+            <div class="h-6 bg-gray-200 rounded w-20"></div>
+          </div>
+          <div class="flex justify-between">
+            <div class="h-4 bg-gray-200 rounded w-20"></div>
+            <div class="h-4 bg-gray-200 rounded w-12"></div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -223,6 +223,15 @@ Rails.application.routes.draw do
         end
       end
 
+      # Investment API endpoints
+      resources :investments, only: [] do
+        collection do
+          get :subtype_data
+          get :countries
+          get :subtypes_by_country
+        end
+      end
+
       # Test routes for API controller testing (only available in test environment)
       if Rails.env.test?
         get "test", to: "test#index"

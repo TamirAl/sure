@@ -1,1 +1,14 @@
-one: {}
+one:
+  subtype: brokerage
+
+canadian_rrsp:
+  subtype: rrsp
+
+uk_isa:
+  subtype: isa
+
+roth_ira:
+  subtype: roth_ira
+
+international_account:
+  subtype: international_brokerage

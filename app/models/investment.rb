@@ -64,11 +64,92 @@ class Investment < ApplicationRecord
     "qshr" => { short: "QSHR", long: "Qualified Shared Responsibility" }
   }.freeze
 
+  # Country mappings for investment subtypes
+  SUBTYPE_COUNTRIES = {
+    # US accounts
+    "401k" => "US", "403b" => "US", "457b" => "US", "roth_401k" => "US",
+    "ira" => "US", "roth_ira" => "US", "sep_ira" => "US", "simple_ira" => "US",
+    "sarsep" => "US", "keogh" => "US", "thrift_savings_plan" => "US",
+    "profit_sharing_plan" => "US", "529" => "US", "529_plan" => "US",
+    "hsa" => "US", "health_savings_account" => "US", "ugma" => "US", "utma" => "US",
+    
+    # Canadian accounts
+    "rrsp" => "CA", "rrif" => "CA", "tfsa" => "CA", "lira" => "CA",
+    "lrif" => "CA", "lrsp" => "CA", "prif" => "CA", "gic" => "CA", "lif" => "CA",
+    
+    # UK accounts
+    "isa" => "UK", "sipp" => "UK",
+    
+    # International/Universal
+    "brokerage" => "International", "non_taxable_brokerage" => "International",
+    "mutual_fund" => "International", "crypto" => "International",
+    "angel" => "International", "other" => "International", "trust" => "International",
+    "stock_plan" => "International", "pension" => "International",
+    "retirement" => "International", "life_insurance" => "International",
+    "ebt" => "International", "qtip" => "International", "qdro" => "International",
+    "qshr" => "International"
+  }.freeze
+
+  # Tax treatment categories
+  TAX_TREATMENTS = {
+    # Tax-deferred (US)
+    "401k" => "tax_deferred", "403b" => "tax_deferred", "457b" => "tax_deferred",
+    "ira" => "tax_deferred", "sep_ira" => "tax_deferred", "simple_ira" => "tax_deferred",
+    "sarsep" => "tax_deferred", "keogh" => "tax_deferred", "thrift_savings_plan" => "tax_deferred",
+    
+    # Tax-free (US)
+    "roth_401k" => "tax_free", "roth_ira" => "tax_free", "529" => "tax_free",
+    "529_plan" => "tax_free", "hsa" => "tax_free", "health_savings_account" => "tax_free",
+    
+    # Tax-deferred (Canada)
+    "rrsp" => "tax_deferred", "lira" => "tax_deferred", "lrsp" => "tax_deferred",
+    
+    # Tax-free (Canada)
+    "tfsa" => "tax_free", "rrif" => "tax_free", "lrif" => "tax_free", "prif" => "tax_free",
+    
+    # Taxable
+    "brokerage" => "taxable", "non_taxable_brokerage" => "taxable", "mutual_fund" => "taxable",
+    "crypto" => "taxable", "angel" => "taxable", "other" => "taxable", "trust" => "taxable",
+    "stock_plan" => "taxable", "pension" => "taxable", "retirement" => "taxable",
+    "life_insurance" => "taxable", "ebt" => "taxable", "qtip" => "taxable", 
+    "qdro" => "taxable", "qshr" => "taxable", "gic" => "taxable", "lif" => "taxable",
+    
+    # International accounts (default to taxable unless specified)
+    "isa" => "tax_free", "sipp" => "tax_deferred", "ugma" => "taxable", "utma" => "taxable"
+  }.freeze
+
   validates :subtype, inclusion: { 
     in: SUBTYPES.keys,
     message: "is not a valid investment account subtype",
     allow_nil: true
   }
+
+  # Instance methods for country and tax treatment information
+  def country
+    SUBTYPE_COUNTRIES[subtype] || "Unknown"
+  end
+
+  def tax_treatment
+    TAX_TREATMENTS[subtype] || "taxable"
+  end
+
+  def country_flag
+    case country
+    when "US" then "🇺🇸"
+    when "CA" then "🇨🇦"
+    when "UK" then "🇬🇧"
+    else "🌍"
+    end
+  end
+
+  def tax_treatment_badge
+    case tax_treatment
+    when "tax_deferred" then { text: "Tax-Deferred", class: "bg-yellow-100 text-yellow-800" }
+    when "tax_free" then { text: "Tax-Free", class: "bg-green-100 text-green-800" }
+    when "taxable" then { text: "Taxable", class: "bg-gray-100 text-gray-800" }
+    else { text: "Unknown", class: "bg-gray-100 text-gray-600" }
+    end
+  end
 
   class << self
     def color
@@ -81,6 +162,24 @@ class Investment < ApplicationRecord
 
     def icon
       "line-chart"
+    end
+
+    # Class methods for UI helpers
+    def grouped_by_country
+      SUBTYPES.group_by { |key, _| SUBTYPE_COUNTRIES[key] || "International" }
+               .transform_values { |subtypes| subtypes.to_h }
+    end
+
+    def subtypes_for_country(country_code)
+      SUBTYPES.select { |key, _| SUBTYPE_COUNTRIES[key] == country_code }
+    end
+
+    def countries_with_counts(user_accounts = [])
+      user_subtypes = user_accounts.map(&:subtype)
+      SUBTYPE_COUNTRIES.values.uniq.map do |country|
+        count = user_subtypes.count { |subtype| SUBTYPE_COUNTRIES[subtype] == country }
+        { country: country, count: count }
+      end.sort_by { |item| -item[:count] }
     end
   end
 end

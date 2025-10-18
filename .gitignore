@@ -106,3 +106,16 @@ scripts/
 .windsurfrules
 .cursor/rules/dev_workflow.mdc
 .cursor/rules/taskmaster.mdc
+project_tasks.md
+.github/copilot/cursor_rules.md
+.github/copilot/general-rules.md
+.github/copilot/project-conventions.md
+.github/copilot/project-design.md
+.github/copilot/self_improve.md
+.github/copilot/stimulus_conventions.md
+.github/copilot/testing.md
+.github/copilot/ui-ux-design-guidelines.md
+.github/copilot/view_conventions.md
+.github/copilot-instructions.md
+project_tasks.md
+.github/copilot-instructions.md

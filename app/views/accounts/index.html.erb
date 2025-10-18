@@ -21,6 +21,43 @@
   </div>
 </header>
 
+<!-- Investment Country Filter (show only if user has investment accounts) -->
+<% if @manual_accounts.joins(:accountable).where(accountable_type: "Investment").any? %>
+  <div class="mb-4 p-3 bg-surface rounded-lg border border-secondary" data-controller="country-filter">
+    <div class="flex items-center gap-3">
+      <label class="text-sm font-medium text-primary">
+        <%= icon "flag", class: "w-4 h-4 inline mr-1" %>
+        Investment Countries:
+      </label>
+      
+      <div class="flex flex-wrap gap-2" data-country-filter-target="tabs">
+        <%= link_to accounts_path, 
+                    class: class_names(
+                      "px-3 py-1 rounded-full text-sm font-medium transition-colors",
+                      params[:country_filter].blank? ? "bg-primary text-white" : "bg-surface-hover text-secondary hover:bg-container"
+                    ),
+                    data: { country_filter_target: "tab" } do %>
+          All Countries
+        <% end %>
+        
+        <% investment_country_filter_options(Current.family.accounts.joins(:accountable).where(accountable_type: "Investment")).each do |option| %>
+          <% country_code, country_label = option[1], option[0] %>
+          <% next if country_code.blank? %>
+          
+          <%= link_to accounts_path(country_filter: country_code), 
+                      class: class_names(
+                        "px-3 py-1 rounded-full text-sm font-medium transition-colors",
+                        params[:country_filter] == country_code ? "bg-primary text-white" : "bg-surface-hover text-secondary hover:bg-container"
+                      ),
+                      data: { country_filter_target: "tab" } do %>
+            <%= country_label %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>
+
 <% if @manual_accounts.empty? && @plaid_items.empty? && @simplefin_items.empty? %>
   <%= render "empty" %>
 <% else %>
